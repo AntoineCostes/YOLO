@@ -4,9 +4,7 @@
     "ble":
     {
         "serialDebug":true,
-        "server":
-        {
-        }
+        "isClient":false
     },
     "i2c":
     {

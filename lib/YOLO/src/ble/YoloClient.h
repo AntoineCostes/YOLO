@@ -2,8 +2,6 @@
 #include "common/Component.h"
 #include "common/Module.h"
 
-
-
 enum ClientState
 {
     CONNECTING,
@@ -130,36 +128,36 @@ public:
     }
 } ;
 
-class YoloClient : public Component
-{
-public:
-    using NotifyCallback = void (*)(void *context, NimBLEClient*, NimBLERemoteCharacteristic* );
+// class YoloClient : public Component
+// {
+// public:
+//     using NotifyCallback = void (*)(void *context, NimBLEClient*, NimBLERemoteCharacteristic* );
 
-    YoloClient(const char *name);
-    void refresh() override;
+//     YoloClient(const char *name);
+//     void refresh() override;
 
-    void initScan();
-    void startScanning();
+//     void initScan();
+//     void startScanning();
 
-    void setStateChangeCallback(NotifyCallback cb, void *ctx)
-    {
-        callback = cb;
-        context = ctx;
-    }
+//     void setStateChangeCallback(NotifyCallback cb, void *ctx)
+//     {
+//         callback = cb;
+//         context = ctx;
+//     }
 
-protected:
-    BoolParameter *isScanningParam;
-    IntParameter *scanTimeParam;
-    std::vector<std::pair<NimBLEClient *, ClientState>> clients;
-    ClientCallbacks clientCbcks;
-    ScanCallbacks scanCbcks;
+// protected:
+//     BoolParameter *isScanningParam;
+//     IntParameter *scanTimeParam;
+//     std::vector<std::pair<NimBLEClient *, ClientState>> clients;
+//     ClientCallbacks clientCbcks;
+//     ScanCallbacks scanCbcks;
     
-    bool subscribe(NimBLEClient * pClient);
-    NotifyCallback callback;
-    void *context;
+//     bool subscribe(NimBLEClient * pClient);
+//     NotifyCallback callback;
+//     void *context;
     
-    static void gotNotification(NimBLERemoteCharacteristic* pRemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
-    Serial.println("state changed");
-    // il faut pouvoir trigger le callback
-}
-};
+//     static void gotNotification(NimBLERemoteCharacteristic* pRemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
+//     Serial.println("state changed");
+//     // il faut pouvoir trigger le callback
+// }
+// };

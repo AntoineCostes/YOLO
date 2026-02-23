@@ -4,9 +4,7 @@
     "ble":
     {
         "serialDebug":true,
-        "client":
-        {
+        "isClient":true,
         "scanTimeMs":6000
-        }
     }
 }

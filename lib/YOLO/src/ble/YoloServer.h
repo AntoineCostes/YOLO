@@ -55,31 +55,31 @@ class ControlCallbacks : public NimBLECharacteristicCallbacks
 };
 
 
-class YoloServer : public Component
-{
-public:
-    YoloServer(const char *name);
-    void refresh() override {}
+// class YoloServer : public Component
+// {
+// public:
+//     YoloServer(const char *name);
+//     void refresh() override {}
 
-    void initService(const uint8_t* configData, size_t configDataSize);
-    void startAdvertising(const char *name);
+//     void initService(const uint8_t* configData, size_t configDataSize);
+//     void startAdvertising(const char *name);
 
-    void notify(Parameter *param);
-    bool isConnected()
-    {
-        if (isConnectedParam)
-            return isConnectedParam->get();
-        else
-            return false;
-    }
+//     void notify(Parameter *param);
+//     bool isConnected()
+//     {
+//         if (isConnectedParam)
+//             return isConnectedParam->get();
+//         else
+//             return false;
+//     }
 
-protected:
-    BoolParameter *isConnectedParam;
-    NimBLEServer *server;
-    ServerCallbacks serverCbcks;
-    ControlCallbacks ctrlCbcks;
+// protected:
+//     BoolParameter *isConnectedParam;
+//     NimBLEServer *server;
+//     ServerCallbacks serverCbcks;
+//     ControlCallbacks ctrlCbcks;
 
-    NimBLECharacteristic *controlChr;
-    NimBLECharacteristic *stateChr;
-    NimBLECharacteristic *configChr;
-};
+//     NimBLECharacteristic *controlChr;
+//     NimBLECharacteristic *stateChr;
+//     NimBLECharacteristic *configChr;
+// };

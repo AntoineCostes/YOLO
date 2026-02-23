@@ -4,6 +4,7 @@ YoloDevice::YoloDevice() : Component("yolo")
 {
   bleModule = new BLEModule();
   modules.emplace_back(bleModule);
+
   modules.emplace_back(new I2CModule());
   // modules.emplace_back(wifiModule);
   // modules.emplace_back(ledModule);
@@ -50,11 +51,33 @@ void YoloDevice::init(String config)
       for (auto comp : module->getComponents())
         for (auto param : comp->getParameters())
           param->setChangeCallback(onParamChangedStatic, this);
+    
+    bleModule->postInit(*this);
 
-    if (bleModule->client)
-      bleModule->client->setStateChangeCallback(onBLEStateChangeStatic, this);
+    // if(bleModule->isInitialized())
+    //   bleModule->initService(configCBOR, len);
+  }
+}
 
-    // generate architecture for handshake
+void YoloDevice::update()
+{
+  for (auto m : modules)
+    m->update();
+}
+
+void YoloDevice::onParamChanged(Parameter *p)
+{
+  dbg("param changed: %s", p->getName());
+  // Only notify for readable parameters
+  if (p->getAccess() == ParamAccess::WRITE_ONLY)
+    return;
+
+  // bleModule->notify(p);
+}
+
+
+std::pair<uint8_t*, size_t> YoloDevice::buildConfigCBOR()
+{
     JsonDocument doc;
 
     doc["device"] = FileManager::getCurrentConfigNiceName().c_str();
@@ -66,15 +89,15 @@ void YoloDevice::init(String config)
       mObj["id"] = m->getModuleID();
       mObj["name"] = m->getName();
 
-      // JsonArray paramsArr = mObj["parameters"].add<JsonArray>();
-      // for (auto p : m->getParameters())
-      // {
+      JsonArray paramsArr = mObj["parameters"].add<JsonArray>();
+      for (auto p : m->getParameters())
+      {
 
-      //   JsonObject pObj = paramsArr.add<JsonObject>();
-      //   pObj["name"] = p->getName();
-      //   pObj["type"] = (int)p->getType();
-      //   pObj["access"] = (int)p->getAccess();
-      // }
+        JsonObject pObj = paramsArr.add<JsonObject>();
+        pObj["name"] = p->getName();
+        pObj["type"] = (int)p->getType();
+        pObj["access"] = (int)p->getAccess();
+      }
 
       // JsonArray compsArr = mObj["components"].add<JsonArray>();
 
@@ -100,22 +123,10 @@ void YoloDevice::init(String config)
     uint8_t configCBOR[512];
     size_t len = serializeMsgPack(doc, configCBOR, sizeof(configCBOR));
 
-    bleModule->start(configCBOR, len);
-  }
+    return std::pair<uint8_t*, size_t>{configCBOR, len};
 }
 
-void YoloDevice::update()
+void YoloDevice::onBLENotify(NimBLEClient*, NimBLERemoteCharacteristic*)
 {
-  for (auto m : modules)
-    m->update();
-}
-
-void YoloDevice::onParamChanged(Parameter *p)
-{
-  dbg("param changed: %s", p->getName());
-  // Only notify for readable parameters
-  if (p->getAccess() == ParamAccess::WRITE_ONLY)
-    return;
-
-  bleModule->notify(p);
+  Serial.println("notify");
 }

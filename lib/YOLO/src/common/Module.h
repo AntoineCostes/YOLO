@@ -79,9 +79,6 @@ public:
 
     void loadConfig(JsonObject const &config)
     {
-        if (config)
-            dbg("load config");
-
         // object entries are Components, to be registered by children classes
         // set parameters from non-object entries
         for (JsonPair kv : config)
