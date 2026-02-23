@@ -1,7 +1,7 @@
 #pragma once
 #include "common/Module.h"
-#include "YoloServer.h"
-#include "YoloClient.h"
+#include "YoloBLEServer.h"
+#include "YoloBLEClient.h"
 
 class IYoloDeviceBLEContext 
 {
@@ -24,7 +24,6 @@ public:
   BLEModule();
   static constexpr uint8_t uuid = 0x00;
   uint8_t getModuleID() const override { return uuid; }
-  void refresh() override {}
   
   void loadConfig(JsonObject const &config) override;
   virtual void postInit(IYoloDeviceBLEContext& context);
@@ -42,6 +41,17 @@ public:
   }
 
   // client
+  using NotifyCallback = void (*)(void *context, NimBLEClient*, NimBLERemoteCharacteristic* );
+
+    void refresh() override;
+    void initScan();
+    void startScanning();
+
+    void setStateChangeCallback(NotifyCallback cb, void *ctx)
+    {
+        callback = cb;
+        context = ctx;
+    }
 
 protected:
     BoolParameter *isClientParam;
@@ -55,6 +65,17 @@ protected:
     NimBLECharacteristic *controlChr;
     NimBLECharacteristic *stateChr;
     NimBLECharacteristic *configChr;
+
+    // client
+    BoolParameter *isScanningParam;
+    IntParameter *scanTimeParam;
+    std::vector<std::pair<NimBLEClient *, ClientState>> clients;
+    ClientCallbacks clientCbcks;
+    ScanCallbacks scanCbcks;
+    
+    bool subscribe(NimBLEClient * pClient);
+    NotifyCallback callback;
+    void *context;
 
 };
 

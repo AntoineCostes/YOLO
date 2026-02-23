@@ -99,26 +99,27 @@ std::pair<uint8_t*, size_t> YoloDevice::buildConfigCBOR()
         pObj["access"] = (int)p->getAccess();
       }
 
-      // JsonArray compsArr = mObj["components"].add<JsonArray>();
+      JsonArray compsArr = mObj["components"].add<JsonArray>();
 
-      // for (auto c : m->getComponents())
-      // {
+      for (auto c : m->getComponents())
+      {
 
-      //   JsonObject cObj = compsArr.add<JsonObject>();
-      //   cObj["name"] = c->getName();
+        JsonObject cObj = compsArr.add<JsonObject>();
+        cObj["name"] = c->getName();
 
-      //   JsonArray paramsArr = cObj["parameters"].add<JsonArray>();
+        JsonArray paramsArr = cObj["parameters"].add<JsonArray>();
 
-      //   for (auto p : c->getParameters())
-      //   {
+        for (auto p : c->getParameters())
+        {
 
-      //     JsonObject pObj = paramsArr.add<JsonObject>();
-      //     pObj["name"] = p->getName();
-      //     pObj["type"] = (int)p->getType();
-      //     pObj["access"] = (int)p->getAccess();
-      //   }
-      // }
+          JsonObject pObj = paramsArr.add<JsonObject>();
+          pObj["name"] = p->getName();
+          pObj["type"] = (int)p->getType();
+          pObj["access"] = (int)p->getAccess();
+        }
+      }
     }
+        serializeJsonPretty(doc, Serial);
     // Serialize to CBOR
     uint8_t configCBOR[512];
     size_t len = serializeMsgPack(doc, configCBOR, sizeof(configCBOR));

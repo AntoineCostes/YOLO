@@ -11,7 +11,6 @@ enum ClientState
     DISCONNECTED
 };
 
-
 class ClientCallbacks : public NimBLEClientCallbacks
 {
 public:
@@ -19,11 +18,11 @@ public:
 
     void onConnect(NimBLEClient *pClient) override
     {
-    Serial.printf("Connected to: %s\n", pClient->getPeerAddress().toString().c_str());
-        
+        Serial.printf("Connected to: %s\n", pClient->getPeerAddress().toString().c_str());
+
         auto existingClient = std::find_if(clients->begin(), clients->end(),
-                                          [pClient](const std::pair<NimBLEClient *, ClientState> &pair)
-                                          { return pair.first == pClient; });
+                                           [pClient](const std::pair<NimBLEClient *, ClientState> &pair)
+                                           { return pair.first == pClient; });
         if (existingClient != clients->end())
             existingClient->second = ClientState::CONNECTED;
     }
@@ -31,10 +30,10 @@ public:
     void onDisconnect(NimBLEClient *pClient, int reason) override
     {
         Serial.printf("%s Disconnected, reason = %d - Starting scan\n", pClient->getPeerAddress().toString().c_str(), reason);
-        
+
         auto existingClient = std::find_if(clients->begin(), clients->end(),
-                                          [pClient](const std::pair<NimBLEClient *, ClientState> &pair)
-                                          { return pair.first == pClient; });
+                                           [pClient](const std::pair<NimBLEClient *, ClientState> &pair)
+                                           { return pair.first == pClient; });
 
         if (existingClient != clients->end())
             existingClient->second = ClientState::DISCONNECTED;
@@ -57,7 +56,7 @@ public:
         if (!advertisedDevice->isAdvertisingService(NimBLEUUID(YOLO_SERVICE_UUID)))
             return;
 
-    Serial.printf("Advertised Device found: %s\n", advertisedDevice->toString().c_str());
+        Serial.printf("Advertised Device found: %s\n", advertisedDevice->toString().c_str());
 
         NimBLEDevice::getScan()->stop();
 
@@ -116,17 +115,19 @@ private:
     int scanTimeMs;
 };
 
-class NotifyCallback : public NimBLECharacteristicCallbacks {
+class NotifyCallback : public NimBLECharacteristicCallbacks
+{
 public:
-    void onStatus(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo, int code) override {
-        const std::string& val = pCharacteristic->getValue();
+    void onStatus(NimBLECharacteristic *pCharacteristic, NimBLEConnInfo &connInfo, int code) override
+    {
+        const std::string &val = pCharacteristic->getValue();
         Serial.println(String(val.c_str()));
         // call YoloDevice static callback
         // YoloDevice::instance().onBLEStateChangeStatic(nullptr,
-                                        //    reinterpret_cast<const uint8_t*>(val.data()),
-                                        //    val.size());
+        //    reinterpret_cast<const uint8_t*>(val.data()),
+        //    val.size());
     }
-} ;
+};
 
 // class YoloClient : public Component
 // {
@@ -151,11 +152,11 @@ public:
 //     std::vector<std::pair<NimBLEClient *, ClientState>> clients;
 //     ClientCallbacks clientCbcks;
 //     ScanCallbacks scanCbcks;
-    
+
 //     bool subscribe(NimBLEClient * pClient);
 //     NotifyCallback callback;
 //     void *context;
-    
+
 //     static void gotNotification(NimBLERemoteCharacteristic* pRemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
 //     Serial.println("state changed");
 //     // il faut pouvoir trigger le callback
