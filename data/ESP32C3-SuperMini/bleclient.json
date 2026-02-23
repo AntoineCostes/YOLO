@@ -1,0 +1,12 @@
+{
+    "name":"bleclient",
+    
+    "ble":
+    {
+        "serialDebug":true,
+        "client":
+        {
+        "scanTimeMs":6000
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "YOLO",
+  "version": "1.0.0",
+  "description": "ESP32 firmware for Yoked Over-the-air Low-power Objects",
+  "keywords": "esp32, animatronics, sfx, magic",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antoinecostes/YOLO.git"
+  },
+  "authors": [
+    {
+      "name": "Antoine Costes",
+      "email": "antoine.costes@gmail.com",
+      "url": "https://www.antoinecostes.net"
+    }
+  ],
+  "license": "MIT",
+
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}

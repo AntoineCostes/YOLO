@@ -1,0 +1,65 @@
+{
+    "name":"default",
+    
+    "ble":
+    {
+        "serialDebug":true,
+        "scanTimeMs":6000,
+        "server":
+        {
+        }
+    },
+    "i2c":
+    {
+        "serialDebug":true,
+        "nox":
+        {
+
+        }
+    },
+    "servos":
+    {
+        "serialDebug":true,
+        "servo":
+        {
+            "pin":0,
+            "min":0.0, 
+            "max":0.94,
+            "start":0.5,
+            "inverse":false
+        }
+    },
+    "ledstrips":
+    {
+        "serialDebug":true,
+        "ledstrip":
+        {
+            "pin":8,
+            "numPixels":10, 
+            "brightness":0.1,
+            "wifiDebug":true
+        }
+    },
+    "nox":
+    {
+        "serialDebug":true,
+        "stc3":
+        {
+            "type":"f",
+            "default":0.0,
+            "range":[0.0, 1.0] 
+        },
+        "sht3":
+        {
+            "type":"f",
+            "default":0.0,
+            "range":[0.0, 1.0] 
+        },
+        "ms5637":
+        {
+            "type":"i",
+            "default":0,
+            "range":[0, 2000] 
+        }
+    }
+}
