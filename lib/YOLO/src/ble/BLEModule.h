@@ -39,6 +39,14 @@ public:
       else
           return false;
   }
+    // Subscribe to control events
+    // void onControl(EventCallback<const uint8_t*, size_t> cb) {
+    //     controlCallback = cb;
+    // }
+
+    // void notifyControl(const uint8_t* data, size_t len) {
+    //     if (controlCallback) controlCallback(data, len);
+    // }
 
   // client
   using NotifyCallback = void (*)(void *context, NimBLEClient*, NimBLERemoteCharacteristic* );
@@ -53,7 +61,17 @@ public:
         context = ctx;
     }
 
+    void onControl(EventCallback<const uint8_t*, size_t> cb) {
+        controlEvent = cb;
+    }
+
 protected:
+    void notifyControl(const uint8_t* data, size_t len) {
+        if (controlEvent) controlEvent(data, len);
+    }
+    EventCallback<const uint8_t*, size_t> controlEvent;
+
+    int hack_inc;
     BoolParameter *isClientParam;
     BoolParameter *isConnectedParam;
 
@@ -76,6 +94,9 @@ protected:
     bool subscribe(NimBLEClient * pClient);
     NotifyCallback callback;
     void *context;
+
+//     static void gotNotification(NimBLERemoteCharacteristic* pRemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
+
 
 };
 

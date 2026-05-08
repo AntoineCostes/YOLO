@@ -28,6 +28,8 @@ public:
         std::string str(name.c_str(), name.length());
         return str;
     }
+    // HACK grainerie
+    ServoModule *servoModule;
 
 
 private:

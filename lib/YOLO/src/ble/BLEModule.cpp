@@ -8,7 +8,8 @@ serverCbcks(nullptr), ctrlCbcks(),
                                            clientCbcks(&clients),
                                            scanCbcks(nullptr, nullptr, nullptr, 1000),
                                            callback(nullptr),
-                                           context(nullptr)
+                                           context(nullptr),
+                                           hack_inc(0)
 
 {
     initializedParam->set(false);
@@ -91,7 +92,11 @@ void BLEModule::initService(const char* deviceName, const uint8_t* configData, s
         YOLO_CONTROL_UUID,
         NIMBLE_PROPERTY::WRITE_NR
     );
-    
+
+    ctrlCbcks.setCallback([this](const uint8_t* data, size_t len){
+            // Module emits higher-level event
+            notifyControl(data, len);
+        });
     controlChr->setCallbacks(&ctrlCbcks);
 
     stateChr = service->createCharacteristic(
@@ -131,15 +136,29 @@ void BLEModule::notify(Parameter* param)
     }
 }
 
-// CLIENT
 void BLEModule::refresh()
 {
-    // client only
     if (!isClientParam->get())
-        return;
+    { 
+        hack_inc++;
+        if (hack_inc == 10)
+        {
+          // dbg("ping");
+          byte batteryVoltage = map(analogRead(0), 0, 4096, 0, 100);
+          ByteParameter* param = new ByteParameter("battery", ParamAccess::READ_ONLY_ALWAYS_NOTIFY, batteryVoltage);
+          stateChr->setValue(param->toBytes(), param->getSize());
+          // Serial.printf("Sending parameter size = %d\n", param->getSize());
+          stateChr->notify();
+          hack_inc = 0;
+        }
+    } else 
+          log("no client");
+  return;
 
+    // client only
   for (auto &pair : clients)
   {
+          log(String(pair.second).c_str());
 
     switch (pair.second)
     {
@@ -159,7 +178,6 @@ void BLEModule::refresh()
         pair.second = ClientState::READY;
         log("discovered !");
         subscribe(pair.first);
-        // Serial.println(String(pair.first->toString().c_str()));
       }
       else
       {
@@ -234,18 +252,18 @@ bool BLEModule::subscribe(NimBLEClient *pClient)
         }
       }
 
-      // if (ch->getUUID().toString() == YOLO_CONTROL_UUID)
-      // {
-      //   if (ch->writeValue("changed"))
-      //   {
-      //     Serial.printf("Wrote new value to: %s\n", ch->getUUID().toString().c_str());
-      //   }
-      //   else
-      //   {
-      //     pClient->disconnect();
-      //     return false;
-      //   }
-      // }
+      if (ch->getUUID().toString() == YOLO_CONTROL_UUID)
+      {
+        if (ch->writeValue("changed"))
+        {
+          Serial.printf("Wrote new value to: %s\n", ch->getUUID().toString().c_str());
+        }
+        else
+        {
+          pClient->disconnect();
+          return false;
+        }
+      }
       Serial.println();
     }
   }

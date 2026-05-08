@@ -4,6 +4,7 @@
 enum class ParameterType : uint8_t
 {
     Bool,
+    Byte,
     Int,
     Float,
     String

@@ -2,9 +2,15 @@
 #include "Dependencies.h"
 #include "util/Timer.h"
 #include "parameters/BoolParameter.h"
+#include "parameters/ByteParameter.h"
 #include "parameters/IntParameter.h"
 #include "parameters/FloatParameter.h"
 #include "parameters/StringParameter.h"
+
+#include <functional>
+
+template<typename... Args>
+using EventCallback = std::function<void(Args...)>;
 
 class Component
 {

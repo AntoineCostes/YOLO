@@ -5,16 +5,16 @@
 class ServerCallbacks : public NimBLEServerCallbacks
 {
 public:
-    ServerCallbacks(BoolParameter *isConnectedParam) :  isConnectedParam(isConnectedParam){}
+    ServerCallbacks(BoolParameter *isConnectedParam) : isConnectedParam(isConnectedParam) {}
 
-    void onConnect(NimBLEServer* pServer, NimBLEConnInfo &connInfo)
+    void onConnect(NimBLEServer *pServer, NimBLEConnInfo &connInfo)
     {
         Serial.printf("Client address: %s\n", connInfo.getAddress().toString().c_str());
         pServer->updateConnParams(connInfo.getConnHandle(),
-                                             12,  // min interval
-                                             24, // max interval
-                                             0,  // latency
-                                             60  // timeout
+                                  12, // min interval
+                                  24, // max interval
+                                  0,  // latency
+                                  60  // timeout
         );
         isConnectedParam->set(true);
     }
@@ -32,28 +32,31 @@ public:
     }
 
 private:
-    BoolParameter *isConnectedParam; 
+    BoolParameter *isConnectedParam;
 };
 
 class ControlCallbacks : public NimBLECharacteristicCallbacks
 {
-    void onWrite(NimBLECharacteristic *pCharacteristic,
+public:
+    using Callback = std::function<void(const uint8_t *data, size_t len)>;
+
+    ControlCallbacks() {}
+
+    void onWrite(NimBLECharacteristic *chr,
                  NimBLEConnInfo &connInfo) override
     {
-
-        std::string value = pCharacteristic->getValue();
-        const uint8_t *data = (const uint8_t *)value.data();
-        size_t len = value.length();
-
-        Serial.print("Control frame received: ");
-        for (size_t i = 0; i < len; i++)
+        if (callback)
         {
-            Serial.printf("%02X ", data[i]);
+            auto val = chr->getValue();
+            callback((uint8_t *)val.data(), val.size());
         }
-        Serial.println();
     }
-};
 
+    void setCallback(Callback cb) { callback = cb; }
+
+private:
+    Callback callback;
+};
 
 // class YoloServer : public Component
 // {

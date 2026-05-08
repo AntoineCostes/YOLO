@@ -2,13 +2,37 @@
 
 YoloDevice::YoloDevice() : Component("yolo")
 {
+    // HACK grainerie
+    servoModule  = new ServoModule();
+  modules.emplace_back(servoModule);
+
   bleModule = new BLEModule();
+  bleModule->onControl([this](const uint8_t* pData, size_t length){
+  //  if (length == sizeof(int)) {
+  //       int value;
+  //       memcpy(&value, pData, sizeof(int));
+  //       Serial.printf("Notification int: %d\n", value);
+  //   } 
+  //   else if (length == sizeof(float)) {
+        float value;
+        memcpy(&value, pData, sizeof(float));
+        // Serial.printf("Notification float: %f\n", value);
+        servoModule->set(0, value);
+    // } 
+    // else if (length == sizeof(uint8_t)) {
+    //     uint8_t value;
+    //     memcpy(&value, pData, sizeof(uint8_t));
+    //     Serial.printf("Notification uint8: %d\n", value);
+    // }
+    // else {
+    //     Serial.printf("Unexpected length: %d\n", length);
+    // }
+  });
   modules.emplace_back(bleModule);
 
   modules.emplace_back(new I2CModule());
   // modules.emplace_back(wifiModule);
   // modules.emplace_back(ledModule);
-  modules.emplace_back(new ServoModule());
   // modules.emplace_back(gpioModule);
   // modules.emplace_back(odriveModule);
 }
@@ -63,6 +87,7 @@ void YoloDevice::update()
 {
   for (auto m : modules)
     m->update();
+
 }
 
 void YoloDevice::onParamChanged(Parameter *p)
@@ -119,7 +144,7 @@ std::pair<uint8_t*, size_t> YoloDevice::buildConfigCBOR()
         }
       }
     }
-        serializeJsonPretty(doc, Serial);
+        // serializeJsonPretty(doc, Serial);
     // Serialize to CBOR
     uint8_t configCBOR[512];
     size_t len = serializeMsgPack(doc, configCBOR, sizeof(configCBOR));

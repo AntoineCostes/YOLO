@@ -6,23 +6,15 @@
         "serialDebug":true,
         "isClient":false
     },
-    "i2c":
-    {
-        "serialDebug":true,
-        "nox":
-        {
-
-        }
-    },
     "servos":
     {
         "serialDebug":true,
         "servo":
         {
-            "pin":0,
-            "min":0.0, 
-            "max":0.94,
-            "start":0.5,
+            "pin":4,
+            "min":0.3, 
+            "max":0.7,
+            "start":0.0,
             "inverse":false
         }
     },
@@ -35,28 +27,6 @@
             "numPixels":10, 
             "brightness":0.1,
             "wifiDebug":true
-        }
-    },
-    "nox":
-    {
-        "serialDebug":true,
-        "stc3":
-        {
-            "type":"f",
-            "default":0.0,
-            "range":[0.0, 1.0] 
-        },
-        "sht3":
-        {
-            "type":"f",
-            "default":0.0,
-            "range":[0.0, 1.0] 
-        },
-        "ms5637":
-        {
-            "type":"i",
-            "default":0,
-            "range":[0, 2000] 
         }
     }
 }

@@ -5,13 +5,15 @@ ServoMotor::ServoMotor(const char* name,
                        float min,
                        float max,
                        bool inverse) : Component(name),
-                                        startPosition(-1),
-                                        targetPosition(-1),
+                                        startPosition(0.5f),
+                                        targetPosition(0.5f),
                                         motionDurationMs(0),
                                         motionStartMs(0)
 {
-    if (servo.attach(pin))
+    if (servo.attach(4) >= 0)
         initializedParam->set(true);
+    else
+        err("PIN ERROR");
 
     // TODO check min < value < max
     positionParam = new FloatParameter("value", ParamAccess::READ_WRITE, (float)(servo.read())/180.0f);
@@ -20,6 +22,10 @@ ServoMotor::ServoMotor(const char* name,
     registerParam(minParam);
     maxParam = new FloatParameter("max", ParamAccess::WRITE_ONLY, max);
     registerParam(maxParam);
+
+    inverseParam = new BoolParameter("inverse", ParamAccess::READ_WRITE, inverse);
+    registerParam(inverseParam);
+        
 }
 
 void ServoMotor::refresh()
@@ -71,7 +77,7 @@ void ServoMotor::goTo(float relative)
         return;
     }
     currentPosition = relative;
-    lastMoveMs = millis();
+    lastMoveMs = (uint32_t)millis();
 
     float min = minParam->get();
     float max = maxParam->get();
@@ -79,7 +85,9 @@ void ServoMotor::goTo(float relative)
     if (inverseParam->get())
         targetPosition = max + relative * (min - max);
 
-    dbg("go to %f (%i us)", targetPosition, PWM_MIN + (PWM_MAX - PWM_MIN) * targetPosition);
+    int us = DEFAULT_uS_LOW + PWM_MIN + (int)((PWM_MAX - PWM_MIN) * targetPosition);
+    // dbg("go to %f (%i us)", targetPosition, PWM_MIN + (PWM_MAX - PWM_MIN) * targetPosition);
+    dbg("go to %f (%i us)", targetPosition, us);
     
-    servo.writeMicroseconds(DEFAULT_uS_LOW + targetPosition * (DEFAULT_uS_HIGH - DEFAULT_uS_LOW));
+    servo.writeMicroseconds(us);
 }
