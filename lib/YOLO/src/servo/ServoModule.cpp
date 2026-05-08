@@ -24,7 +24,7 @@ void ServoModule::registerServo(const char* name, JsonObject const &config)
     if (pin >= 0 && min >= 0.0 && max >= 0.0)
     {
         if (registerServo(name, pin, min, max, inverse))
-            move(typedComponents.size() - 1, start, 1.0);
+            set(typedComponents.size() - 1, start);
     }
     else
         err("cannot register servo");//, pin (" + String(pin) + "), min (" + String(min) + ") and max (" + String(max) + ") should be positive !");

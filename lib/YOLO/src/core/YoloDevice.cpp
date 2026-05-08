@@ -2,12 +2,9 @@
 
 YoloDevice::YoloDevice() : Component("yolo")
 {
-    // HACK grainerie
-    servoModule  = new ServoModule();
-  modules.emplace_back(servoModule);
-
   bleModule = new BLEModule();
   bleModule->onControl([this](const uint8_t* pData, size_t length){
+    Serial.printf("control notification\n");
   //  if (length == sizeof(int)) {
   //       int value;
   //       memcpy(&value, pData, sizeof(int));
@@ -17,7 +14,6 @@ YoloDevice::YoloDevice() : Component("yolo")
         float value;
         memcpy(&value, pData, sizeof(float));
         // Serial.printf("Notification float: %f\n", value);
-        servoModule->set(0, value);
     // } 
     // else if (length == sizeof(uint8_t)) {
     //     uint8_t value;
@@ -29,12 +25,7 @@ YoloDevice::YoloDevice() : Component("yolo")
     // }
   });
   modules.emplace_back(bleModule);
-
-  modules.emplace_back(new I2CModule());
-  // modules.emplace_back(wifiModule);
-  // modules.emplace_back(ledModule);
-  // modules.emplace_back(gpioModule);
-  // modules.emplace_back(odriveModule);
+  modules.emplace_back(new ServoModule());
 }
 
 void YoloDevice::init(String config)
@@ -65,6 +56,8 @@ void YoloDevice::init(String config)
       for (auto m : modules)
         m->loadConfig(json[m->getName()].as<JsonObject>());
 
+      for (auto m : modules)
+        Serial.println(m->getName());
     // FileManager::printWifiCredentials();
     Serial.println();
     Serial.println("INIT OK: " + FileManager::getCurrentConfigNiceName());

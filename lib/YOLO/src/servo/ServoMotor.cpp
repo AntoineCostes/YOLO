@@ -5,12 +5,13 @@ ServoMotor::ServoMotor(const char* name,
                        float min,
                        float max,
                        bool inverse) : Component(name),
+                                        currentPosition(0.5f),
                                         startPosition(0.5f),
                                         targetPosition(0.5f),
                                         motionDurationMs(0),
                                         motionStartMs(0)
 {
-    if (servo.attach(4) >= 0)
+    if (servo.attach((int)pin) >= 0)
         initializedParam->set(true);
     else
         err("PIN ERROR");
@@ -66,6 +67,7 @@ void ServoMotor::goTo(float relative, uint32_t durationMs)
     }
 }
 
+// TODO remplacer currentPosition par positionParam.get();
 void ServoMotor::goTo(float relative)
 {
     if (!initializedParam->get())
@@ -85,8 +87,7 @@ void ServoMotor::goTo(float relative)
     if (inverseParam->get())
         targetPosition = max + relative * (min - max);
 
-    int us = DEFAULT_uS_LOW + PWM_MIN + (int)((PWM_MAX - PWM_MIN) * targetPosition);
-    // dbg("go to %f (%i us)", targetPosition, PWM_MIN + (PWM_MAX - PWM_MIN) * targetPosition);
+    int us = DEFAULT_uS_LOW + targetPosition * (DEFAULT_uS_HIGH - DEFAULT_uS_LOW) ;
     dbg("go to %f (%i us)", targetPosition, us);
     
     servo.writeMicroseconds(us);
