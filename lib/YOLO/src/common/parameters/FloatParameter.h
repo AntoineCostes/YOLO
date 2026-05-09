@@ -38,14 +38,23 @@ public:
     }
 
     float get() const { return value; }
-    const uint8_t *toBytes() const override
-    {
-        return reinterpret_cast<const uint8_t *>(&value);
-    }
-    size_t getSize() const override { return sizeof(value); }
+    // const uint8_t *toBytes() const override
+    // {
+    //     return reinterpret_cast<const uint8_t *>(&value);
+    // }
+    // size_t getSize() const override { return sizeof(value); }
 
     void setMin(float v) { min = v; }
     void setMax(float v) { max = v; }
+
+    void serialize(PacketWriter& w) const override
+    {
+        w.f32(value);
+    }
+    void deserialize(PacketReader& r) override
+    {
+        value = r.f32();
+    }
 
 private:
     float value;

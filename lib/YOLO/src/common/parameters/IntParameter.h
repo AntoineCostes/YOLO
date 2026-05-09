@@ -37,11 +37,20 @@ public:
             onChange();
     }
     int get() const { return value; }
-    const uint8_t *toBytes() const override
+    // const uint8_t *toBytes() const override
+    // {
+    //     return reinterpret_cast<const uint8_t *>(&value);
+    // }
+    // size_t getSize() const override { return sizeof(value); }
+
+    void serialize(PacketWriter& w) const override
     {
-        return reinterpret_cast<const uint8_t *>(&value);
+        w.i32(value);
     }
-    size_t getSize() const override { return sizeof(value); }
+    void deserialize(PacketReader& r) override
+    {
+        value = r.i32();
+    }
 
 private:
     int value;

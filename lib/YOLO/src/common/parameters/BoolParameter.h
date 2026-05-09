@@ -24,11 +24,20 @@ public:
     }
 
     bool get() const { return value; }
-    const uint8_t* toBytes() const override {
-        return reinterpret_cast<const uint8_t*>(&value);
-    }
-    size_t getSize() const override { return sizeof(value); }
+    // const uint8_t* toBytes() const override {
+    //     return reinterpret_cast<const uint8_t*>(&value);
+    // }
+    // size_t getSize() const override { return sizeof(value); }
 
+    void serialize(PacketWriter& w) const override
+    {
+        w.boolean(value);
+    }
+
+    void deserialize(PacketReader& r) override
+    {
+        value = r.boolean();
+    }
 private:
     bool value;
 };

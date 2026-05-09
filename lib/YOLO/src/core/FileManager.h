@@ -2,6 +2,7 @@
 #include "common/Dependencies.h"
 #include "common/Component.h"
 
+// TODO en faire un module ! => les config et credentials sont des StringListParameters
 #define NUM_CREDENTIALS 5
 class FileManager
 {
