@@ -2,9 +2,9 @@
 
 Component::Component(const char *name, uint32_t refreshMs, bool serialDebug) : name(name), refreshTimer(refreshMs, true)
 {
-    initializedParam = new BoolParameter("initialized", ParamAccess::READ_ONLY, false);
+    initializedParam = new BoolParameter("initialized", ParameterAccess::READ_ONLY, false);
     registerParam(initializedParam);
-    serialDebugParam = new BoolParameter("serialDebug", ParamAccess::WRITE_ONLY, true);
+    serialDebugParam = new BoolParameter("serialDebug", ParameterAccess::WRITE_ONLY, true);
     registerParam(serialDebugParam);
 
     refreshTimer.setCallback(std::bind(&Component::refresh, this));

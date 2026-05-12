@@ -4,7 +4,7 @@
 class StringParameter : public Parameter
 {
 public:
-    StringParameter(const char *name, ParamAccess access, const char *initial = "")
+    StringParameter(const char *name, ParameterAccess access, const char *initial = "")
         : Parameter(name, ParameterType::String, access)
     {
         strncpy(value, initial, sizeof(value));
@@ -28,25 +28,25 @@ public:
             value[sizeof(value) - 1] = '\0';
             onChange();
         }
-        else if (access == ParamAccess::READ_ONLY_ALWAYS_NOTIFY || access == ParamAccess::READ_WRITE_ALWAYS_NOTIFY)
+        else if (access == ParameterAccess::READ_ONLY_ALWAYS_NOTIFY || access == ParameterAccess::READ_WRITE_ALWAYS_NOTIFY)
             onChange();
     }
+    // void serialize(PacketWriter &w) const override
+    // {
+    //     w.str(value);
+    // }
+    // void deserialize(PacketReader &r) override
+    // {
+    //     // value = r.str();
+    // }
 
     const char *get() const { return value; }
-    // const uint8_t *toBytes() const override
-    // {
-    //     return reinterpret_cast<const uint8_t *>(&value);
-    // }
-    // size_t getSize() const override { return sizeof(value); }
+    const uint8_t *toBytes() const override
 
-    void serialize(PacketWriter& w) const override
     {
-        w.str(value);
+        return reinterpret_cast<const uint8_t *>(&value);
     }
-    void deserialize(PacketReader& r) override
-    {
-        // value = r.str();
-    }
+    size_t getSize() const override { return sizeof(value); }
 
 private:
     char value[64]; // fixed buffer size

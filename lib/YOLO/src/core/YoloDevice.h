@@ -6,7 +6,7 @@
 #include "servo/ServoModule.h"
 #include "i2c/I2CModule.h"
 
-class YoloDevice : public Component, IYoloDeviceBLEContext
+class YoloDevice : public Component, IYoloDeviceView
 {
 public:
     static YoloDevice &instance()
@@ -21,14 +21,15 @@ public:
     void update();
     void refresh() override {}
 
-    std::pair<uint8_t*, size_t> buildConfigCBOR() override;
-    void onBLENotify(NimBLEClient*, NimBLERemoteCharacteristic*)  override;
+    // std::pair<uint8_t*, size_t> buildConfigCBOR() override;
     std::string getDeviceName() const override {
         String name = FileManager::getCurrentConfigNiceName();
         std::string str(name.c_str(), name.length());
         return str;
     }
 
+    const std::vector<IModule*>& getModules() const override { return modules; }
+    
 private:
     YoloDevice();
 

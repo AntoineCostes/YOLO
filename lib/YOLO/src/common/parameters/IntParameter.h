@@ -4,7 +4,7 @@
 class IntParameter : public Parameter
 {
 public:
-    IntParameter(const char *name, ParamAccess access, int value, int min, int max)
+    IntParameter(const char *name, ParameterAccess access, int value, int min, int max)
         : Parameter(name, ParameterType::Int, access), value(value), min(min), max(max) {}
 
     bool setFromJson(const JsonVariantConst &v) override
@@ -33,24 +33,24 @@ public:
             value = v;
             onChange();
         }
-        else if (access == ParamAccess::READ_ONLY_ALWAYS_NOTIFY || access == ParamAccess::READ_WRITE_ALWAYS_NOTIFY)
+        else if (access == ParameterAccess::READ_ONLY_ALWAYS_NOTIFY || access == ParameterAccess::READ_WRITE_ALWAYS_NOTIFY)
             onChange();
     }
     int get() const { return value; }
-    // const uint8_t *toBytes() const override
+    // void serialize(PacketWriter &w) const override
     // {
-    //     return reinterpret_cast<const uint8_t *>(&value);
+    //     w.i32(value);
     // }
-    // size_t getSize() const override { return sizeof(value); }
+    // void deserialize(PacketReader &r) override
+    // {
+    //     value = r.i32();
+    // }
 
-    void serialize(PacketWriter& w) const override
+    const uint8_t *toBytes() const override
     {
-        w.i32(value);
+        return reinterpret_cast<const uint8_t *>(&value);
     }
-    void deserialize(PacketReader& r) override
-    {
-        value = r.i32();
-    }
+    size_t getSize() const override { return sizeof(value); }
 
 private:
     int value;

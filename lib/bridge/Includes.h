@@ -14,7 +14,7 @@ using Variant = std::variant<
     std::string
 >;
 
-enum class ParamType : uint8_t
+enum class ParameterType : uint8_t
 {
     Bool,
     Byte,
@@ -23,7 +23,7 @@ enum class ParamType : uint8_t
     String
 };
 
-enum class ParamAccess : uint8_t
+enum class ParameterAccess : uint8_t
 {
     READ_ONLY,
     READ_ONLY_ALWAYS_NOTIFY, // notify set() even if value didn't change
@@ -42,8 +42,8 @@ struct RemoteParam
 
     std::string name;
 
-    ParamType type;
-    ParamAccess access;
+    ParameterType type;
+    ParameterAccess access;
 
     Variant value;
 };

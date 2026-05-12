@@ -9,13 +9,13 @@ NoxProbe::NoxProbe(STC3X_binary_gas_type_e gasType, bool debug) : I2CSensor("nox
 {
     initializedParam->set(false);
 
-    temperatureParam = new FloatParameter("temperature", ParamAccess::READ_ONLY_ALWAYS_NOTIFY, 0.0f, -50.f, 100.0f);
+    temperatureParam = new FloatParameter("temperature", ParameterAccess::READ_ONLY_ALWAYS_NOTIFY, 0.0f, -50.f, 100.0f);
     registerParam(temperatureParam);
-    humidityParam = new FloatParameter("humidity", ParamAccess::READ_ONLY_ALWAYS_NOTIFY, 0.0f, 0.f, 100.0f);
+    humidityParam = new FloatParameter("humidity", ParameterAccess::READ_ONLY_ALWAYS_NOTIFY, 0.0f, 0.f, 100.0f);
     registerParam(humidityParam);
-    pressureParam = new IntParameter("pressure", ParamAccess::READ_ONLY_ALWAYS_NOTIFY, 0, -1000, 2000);
+    pressureParam = new IntParameter("pressure", ParameterAccess::READ_ONLY_ALWAYS_NOTIFY, 0, -1000, 2000);
     registerParam(pressureParam);
-    co2Param = new FloatParameter("co2", ParamAccess::READ_ONLY_ALWAYS_NOTIFY, 0.0f, 0.f, 100.0f);
+    co2Param = new FloatParameter("co2", ParameterAccess::READ_ONLY_ALWAYS_NOTIFY, 0.0f, 0.f, 100.0f);
     registerParam(co2Param);
 
     if (debug)

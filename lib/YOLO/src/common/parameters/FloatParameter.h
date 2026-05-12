@@ -4,7 +4,7 @@
 class FloatParameter : public Parameter
 {
 public:
-    FloatParameter(const char *name, ParamAccess access, float value, float min = 0.0f, float max = 1.0f)
+    FloatParameter(const char *name, ParameterAccess access, float value, float min = 0.0f, float max = 1.0f)
         : Parameter(name, ParameterType::Float, access), value(value), min(min), max(max) {}
 
     bool setFromJson(const JsonVariantConst &v) override
@@ -33,28 +33,37 @@ public:
             value = v;
             onChange();
         }
-        else if (access == ParamAccess::READ_ONLY_ALWAYS_NOTIFY || access == ParamAccess::READ_WRITE_ALWAYS_NOTIFY)
+        else if (access == ParameterAccess::READ_ONLY_ALWAYS_NOTIFY || access == ParameterAccess::READ_WRITE_ALWAYS_NOTIFY)
             onChange();
     }
-
-    float get() const { return value; }
-    // const uint8_t *toBytes() const override
-    // {
-    //     return reinterpret_cast<const uint8_t *>(&value);
-    // }
-    // size_t getSize() const override { return sizeof(value); }
 
     void setMin(float v) { min = v; }
     void setMax(float v) { max = v; }
 
-    void serialize(PacketWriter& w) const override
+    float get() const { return value; }
+    // void serialize(PacketWriter& w) const override
+    // {
+    //     w.f32(value);
+    // }
+    // void deserialize(PacketReader& r) override
+    // {
+    //     value = r.f32();
+    // }
+
+    const uint8_t *toBytes() const override
     {
-        w.f32(value);
+        return reinterpret_cast<const uint8_t *>(&value);
     }
-    void deserialize(PacketReader& r) override
-    {
-        value = r.f32();
-    }
+    size_t getSize() const override { return sizeof(value); }
+
+
+
+
+
+
+
+
+
 
 private:
     float value;

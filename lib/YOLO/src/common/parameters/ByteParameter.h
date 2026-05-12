@@ -4,7 +4,7 @@
 class ByteParameter : public Parameter
 {
 public:
-    ByteParameter(const char *name, ParamAccess access, byte value)
+    ByteParameter(const char *name, ParameterAccess access, byte value)
         : Parameter(name, ParameterType::Byte, access), value(value) {}
 
     bool setFromJson(const JsonVariantConst &v) override
@@ -33,15 +33,15 @@ public:
             value = v;
             onChange();
         }
-        else if (access == ParamAccess::READ_ONLY_ALWAYS_NOTIFY || access == ParamAccess::READ_WRITE_ALWAYS_NOTIFY)
+        else if (access == ParameterAccess::READ_ONLY_ALWAYS_NOTIFY || access == ParameterAccess::READ_WRITE_ALWAYS_NOTIFY)
             onChange();
     }
     int get() const { return value; }
-    // const uint8_t *toBytes() const override
-    // {
-    //     return reinterpret_cast<const uint8_t *>(&value);
-    // }
-    // size_t getSize() const override { return sizeof(value); }
+    const uint8_t *toBytes() const override
+    {
+        return reinterpret_cast<const uint8_t *>(&value);
+    }
+    size_t getSize() const override { return sizeof(value); }
 
 private:
     byte value;

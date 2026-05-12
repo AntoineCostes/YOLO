@@ -69,7 +69,7 @@ void YoloDevice::init(String config)
         for (auto param : comp->getParameters())
           param->setChangeCallback(onParamChangedStatic, this);
     
-    bleModule->postInit(*this);
+    bleModule->setupServer(*this);
 
     // if(bleModule->isInitialized())
     //   bleModule->initService(configCBOR, len);
@@ -87,65 +87,9 @@ void YoloDevice::onParamChanged(Parameter *p)
 {
   dbg("param changed: %s", p->getName());
   // Only notify for readable parameters
-  if (p->getAccess() == ParamAccess::WRITE_ONLY)
+  if (p->getAccess() == ParameterAccess::WRITE_ONLY)
     return;
 
   // bleModule->notify(p);
 }
 
-
-std::pair<uint8_t*, size_t> YoloDevice::buildConfigCBOR()
-{
-    JsonDocument doc;
-
-    doc["device"] = FileManager::getCurrentConfigNiceName().c_str();
-
-    JsonArray modulesArr = doc["modules"].add<JsonArray>();
-    for (auto m : modules)
-    {
-      JsonObject mObj = modulesArr.add<JsonObject>();
-      mObj["id"] = m->getModuleID();
-      mObj["name"] = m->getName();
-
-      JsonArray paramsArr = mObj["parameters"].add<JsonArray>();
-      for (auto p : m->getParameters())
-      {
-
-        JsonObject pObj = paramsArr.add<JsonObject>();
-        pObj["name"] = p->getName();
-        pObj["type"] = (int)p->getType();
-        pObj["access"] = (int)p->getAccess();
-      }
-
-      JsonArray compsArr = mObj["components"].add<JsonArray>();
-
-      for (auto c : m->getComponents())
-      {
-
-        JsonObject cObj = compsArr.add<JsonObject>();
-        cObj["name"] = c->getName();
-
-        JsonArray paramsArr = cObj["parameters"].add<JsonArray>();
-
-        for (auto p : c->getParameters())
-        {
-
-          JsonObject pObj = paramsArr.add<JsonObject>();
-          pObj["name"] = p->getName();
-          pObj["type"] = (int)p->getType();
-          pObj["access"] = (int)p->getAccess();
-        }
-      }
-    }
-        // serializeJsonPretty(doc, Serial);
-    // Serialize to CBOR
-    uint8_t configCBOR[512];
-    size_t len = serializeMsgPack(doc, configCBOR, sizeof(configCBOR));
-
-    return std::pair<uint8_t*, size_t>{configCBOR, len};
-}
-
-void YoloDevice::onBLENotify(NimBLEClient*, NimBLERemoteCharacteristic*)
-{
-  Serial.println("notify");
-}

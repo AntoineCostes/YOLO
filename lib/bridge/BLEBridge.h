@@ -5,6 +5,7 @@
 #define YOLO_QUERY_UUID "b91bb233-0001-4de7-97cb-ae80cc439000"
 #define YOLO_RESPONSE_UUID "b91bb233-0002-4de7-97cb-ae80cc439000"
 #define YOLO_STATE_UUID "b91bb233-0003-4de7-97cb-ae80cc439000"
+#define YOLO_CONTROL_UUID        "b91bb233-0004-4de7-97cb-ae80cc439000"
 
 enum class ConnectionState : uint8_t {
   DISCONNECTED,
@@ -14,12 +15,13 @@ enum class ConnectionState : uint8_t {
 };
 
 enum class BLEOpcode : uint8_t {
-  GET_MODULE_LIST = 0x01,
-  GET_MODULE_DESC = 0x02,
-  GET_COMPONENT_DESC = 0x03,
-  GET_PARAM_VALUE = 0x04,
-  SET_PARAM_VALUE = 0x05,
-  PARAM_NOTIFY = 0x06
+  GET_DEVICE_INFO = 0x01,
+  GET_MODULE_LIST = 0x02,
+  GET_MODULE_DESC = 0x03,
+  GET_COMPONENT_DESC = 0x04,
+  GET_PARAM_VALUE = 0x05,
+  SET_PARAM_VALUE = 0x06,
+  PARAM_NOTIFY = 0x07
 };
 
 struct DeviceContext {
@@ -141,9 +143,15 @@ public:
   }
 
   void onResponse(NimBLERemoteCharacteristic* chr, uint8_t* data, size_t len, bool isNotify) {
+    Serial.printf("on response");
     NimBLEClient* client = chr->getRemoteService()->getClient();
     auto device = findDevice(client);
-    if (!device) return;
+    if (!device) 
+    {
+      
+    Serial.printf("eRROR client not found");
+      return;
+    }
     parseResponse(*device, data, len);
   }
 
@@ -200,6 +208,7 @@ private:
     if (len == 0)
       return;
 
+      Serial.println("parse response");
     uint8_t opcode = data[0];
 
     switch ((BLEOpcode)opcode) {
@@ -215,6 +224,8 @@ private:
   }
 
   void parseModuleList(DeviceContext& device, uint8_t* data, size_t len) {
+    Serial.println("parse module list");
+
     size_t pos = 1;
 
     uint8_t count = data[pos++];

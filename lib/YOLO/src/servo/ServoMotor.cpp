@@ -17,14 +17,14 @@ ServoMotor::ServoMotor(const char* name,
         err("PIN ERROR");
 
     // TODO check min < value < max
-    positionParam = new FloatParameter("value", ParamAccess::READ_WRITE, (float)(servo.read())/180.0f);
+    positionParam = new FloatParameter("value", ParameterAccess::READ_WRITE, (float)(servo.read())/180.0f);
     registerParam(positionParam);
-    minParam = new FloatParameter("min", ParamAccess::WRITE_ONLY, min);
+    minParam = new FloatParameter("min", ParameterAccess::WRITE_ONLY, min);
     registerParam(minParam);
-    maxParam = new FloatParameter("max", ParamAccess::WRITE_ONLY, max);
+    maxParam = new FloatParameter("max", ParameterAccess::WRITE_ONLY, max);
     registerParam(maxParam);
 
-    inverseParam = new BoolParameter("inverse", ParamAccess::READ_WRITE, inverse);
+    inverseParam = new BoolParameter("inverse", ParameterAccess::READ_WRITE, inverse);
     registerParam(inverseParam);
         
 }
