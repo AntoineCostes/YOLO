@@ -5,12 +5,7 @@
 #include <vector>
 #include <variant>
 #include <functional>
-
-#define YOLO_SERVICE_UUID        "b91bb233-0000-4de7-97cb-ae80cc439000"
-#define YOLO_QUERY_UUID         "b91bb233-0001-4de7-97cb-ae80cc439000"
-#define YOLO_RESPONSE_UUID          "b91bb233-0002-4de7-97cb-ae80cc439000"
-#define YOLO_STATE_UUID          "b91bb233-0003-4de7-97cb-ae80cc439000"
-#define YOLO_CONTROL_UUID        "b91bb233-0004-4de7-97cb-ae80cc439000"
+#include <algorithm>
 
 using Variant = std::variant<
     bool,
@@ -64,7 +59,7 @@ struct RemoteComponent
 
 struct RemoteModule
 {
-    uint8_t moduleId;
+    uint8_t id;
 
     std::string name;
 
