@@ -25,6 +25,16 @@ public:
     Parameter* getParam(const char* name);
     
     std::vector<Parameter*> getParameters() const {return parameters;}
+    
+    void serializeMetadata(PacketWriter& w) const
+    {
+        auto params = getParameters();
+        w.u8(params.size());
+
+        for (auto* p : params)
+        if (p)
+            p->serializeMetadata(w);
+    }
 
 protected:
     Timer refreshTimer;

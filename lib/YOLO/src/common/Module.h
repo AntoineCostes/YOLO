@@ -2,6 +2,17 @@
 #include "Component.h"
 #include "ResourceManager.h"
 
+
+enum class MODULE_ID : uint8_t {
+  MASTER = 0x01,
+  FILE = 0x02,
+  BLE = 0x03,
+  WIFI = 0x04,
+  I2C = 0x05,
+  SERVO  = 0x06
+};
+
+
 class IModule : public Component
 {
 public:
@@ -12,14 +23,22 @@ public:
     virtual void loadConfig(JsonObject const &) = 0;
     virtual const std::vector<Component *> &getComponents() const = 0;
     virtual uint8_t getModuleID() const = 0;
+    
+    virtual void serializeMetadata(PacketWriter& w) const = 0;
+    
 };
 
-template <typename TComponent>
+template <MODULE_ID M_ID, typename TComponent>
 class Module : public IModule
 {
 public:
     Module(const char *name, bool serialDebug = false)
         : IModule(name, serialDebug) {}
+
+    uint8_t getModuleID() const final
+    {
+        return static_cast<uint8_t>(M_ID);
+    }
 
     void update() override
     {
@@ -95,6 +114,24 @@ public:
             }
 
         initializedParam->set(true);
+    }
+
+    void serializeMetadata(PacketWriter& w) const override
+    {
+    w.u8(getModuleID());
+
+    auto params = getParameters();
+    w.u8(params.size());
+
+    for (auto* p : params)
+      if (p)
+        p->serializeMetadata(w);
+
+    auto comps = getComponents();
+    w.u8(comps.size());
+
+    for (auto* c : comps)
+        c->serializeMetadata(w);
     }
 
 protected:

@@ -1,17 +1,13 @@
 #pragma once
 #include "BLEProtocol.h"
 
-class BLEModule : public Module<Component>
+class BLEModule : public Module<MODULE_ID::BLE, Component>
 {
 public:
     BLEModule();
-    static constexpr uint8_t uuid = 0x00;
-    uint8_t getModuleID() const override { return uuid; }
 
     void loadConfig(JsonObject const &config) override;
     virtual void setupServer(IYoloDeviceView &deviceView);
-
-    void handleQuery(uint8_t opcode, const uint8_t *data, size_t len);
 
     // server
     void initService(const char *deviceName);

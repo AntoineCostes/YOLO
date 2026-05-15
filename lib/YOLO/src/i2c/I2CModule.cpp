@@ -1,6 +1,6 @@
 #include "I2CModule.h"
 
-I2CModule::I2CModule() : Module<I2CSensor>("i2c")
+I2CModule::I2CModule() : Module<MODULE_ID::I2C, I2CSensor>("i2c")
 {
     Wire.begin();
 }

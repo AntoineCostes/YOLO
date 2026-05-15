@@ -2,13 +2,11 @@
 #include "common/Module.h"
 #include "ServoMotor.h"
 
-class ServoModule : public Module<ServoMotor>
+class ServoModule : public Module<MODULE_ID::SERVO, ServoMotor>
 {
 public:
     ServoModule();
     void refresh() override {}
-    static constexpr uint8_t uuid = 0x00; 
-    uint8_t getModuleID() const override { return uuid;  }
 
     void loadConfig(JsonObject const &config) override;
 

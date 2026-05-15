@@ -1,6 +1,6 @@
 #include "ServoModule.h"
 
-ServoModule::ServoModule() : Module<ServoMotor>("servos")
+ServoModule::ServoModule() : Module<MODULE_ID::SERVO, ServoMotor>("servos")
 {
 }
 

@@ -43,6 +43,7 @@ public:
     }
     size_t getSize() const override { return sizeof(value); }
 
+
 private:
     bool value;
 };

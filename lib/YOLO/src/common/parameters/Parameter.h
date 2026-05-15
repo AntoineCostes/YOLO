@@ -3,20 +3,46 @@
 
 enum class ParameterType : uint8_t
 {
-    Bool,
-    Byte,
-    Int,
-    Float,
-    String
+    Bool = 0x01,
+    Byte = 0x02,
+    Int = 0x03,
+    Float = 0x04,
+    String = 0x05
 };
 
 enum class ParameterAccess : uint8_t
 {
-    READ_ONLY,
-    READ_ONLY_ALWAYS_NOTIFY, // notify set() even if value didn't change
-    WRITE_ONLY,
-    READ_WRITE,
-    READ_WRITE_ALWAYS_NOTIFY // notify set() even if value didn't change
+    READ_ONLY = 0x01,
+    READ_ONLY_ALWAYS_NOTIFY = 0x02, // notify set() even if value didn't change
+    WRITE_ONLY = 0x03,
+    READ_WRITE = 0x04,
+    READ_WRITE_ALWAYS_NOTIFY = 0x05 // notify set() even if value didn't change
+};
+
+struct PacketWriter {
+  uint8_t* buf;
+  size_t pos = 0;
+  size_t capacity;
+
+  PacketWriter(uint8_t* b, size_t c)
+    : buf(b), capacity(c) {}
+
+  void u8(uint8_t v) {
+    buf[pos++] = v;
+  }
+
+  void bytes(const uint8_t* data, size_t len) {
+    memcpy(buf + pos, data, len);
+    pos += len;
+  }
+
+  void str(const char* s) {
+    uint8_t len = strlen(s);
+    u8(len);
+    bytes((const uint8_t*)s, len);
+  }
+
+  size_t size() const { return pos; }
 };
 
 class Parameter
@@ -48,6 +74,12 @@ public:
     {
         callback = cb;
         context = ctx;
+    }
+    
+    void serializeMetadata(PacketWriter& w) const {
+    w.str(name);
+    w.u8((uint8_t)type);
+    w.u8((uint8_t)access);
     }
 
 protected:

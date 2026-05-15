@@ -190,7 +190,7 @@ public:
       Serial.printf("eRROR client not found");
       return;
     }
-    
+
     if (len == 0)
       return;
     uint8_t opcode = data[0];
@@ -198,7 +198,9 @@ public:
     switch ((BLEOpcode)opcode) {
       case BLEOpcode::GET_MODULE_LIST:
         {
-          parseModuleList(*device, data, len);
+          static std::vector<uint8_t> snapshot;
+          snapshot.assign(data, data + len);
+          parseModuleList(*device, snapshot.data(), snapshot.size());
           break;
         }
       case BLEOpcode::GET_COMPONENT_DESC:
@@ -234,24 +236,73 @@ private:
     Serial.println("parse module list");
 
     size_t pos = 1;
+    uint8_t moduleCount = data[pos++];
+    Serial.printf("MODULE COUNT = %d\n", moduleCount);
 
-    uint8_t count = data[pos++];
-
-    Serial.printf("MODULE COUNT = %d\n", count);
-
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < moduleCount; i++) {
+      Serial.printf("module #%d\n", i);
       RemoteModule mod;
 
       mod.id = data[pos++];
+      Serial.printf("MODULE id = %d\n", mod.id);
 
-      uint8_t nameLen = data[pos++];
+      uint8_t paramCount = data[pos++];
+      Serial.printf("param count = %d\n", paramCount);
 
-      mod.name = std::string((char*)(data + pos), nameLen);
+      Serial.println("");
+      Serial.println("list parameters");
+      for (int paramIndex = 0; paramIndex < paramCount; paramIndex++) {
 
-      pos += nameLen;
+        Serial.printf("param #%d\n", paramIndex);
+
+        uint8_t nameLen = data[pos++];
+        Serial.printf("param nameLen = %d\n", nameLen);
+
+        Serial.printf("RAW NAME BYTES: ");
+        for (int i = 0; i < nameLen; i++)
+        {
+            Serial.printf("%02X ", data[pos + i]);
+        }
+        Serial.println();
+        std::string paramName((char*)&data[pos], nameLen);
+        Serial.println(paramName.c_str());
+        Serial.printf("param name = %s\n", paramName.c_str());
+        pos += nameLen;
+
+        uint8_t paramType = data[pos++];
+        Serial.printf("param type = %d\n", paramType);
+
+        uint8_t paramAccess = data[pos++];
+        Serial.printf("param access = %d\n", paramAccess);
+      }
+
+      uint8_t compCount = data[pos++];
+      Serial.printf("comp count = %d\n", compCount);
+
+      Serial.println("");
+      Serial.println("list components");
+      for (int compIndex = 0; compIndex < compCount; compIndex++) {
+
+      Serial.printf("comp #%d\n", compIndex);
+        uint8_t nameLen = data[pos++];
+        std::string name((char*)&data[pos], nameLen);
+        Serial.printf("comp name = %s\n", name.c_str());
+        pos += nameLen;
+
+        uint8_t compParamCount = data[pos++];
+        Serial.printf("compParam count = %d\n", compParamCount);
+
+        for (int i = 0; i < compParamCount; i++) {
+
+          uint8_t compParamType = data[pos++];
+          Serial.printf("compParam type = %d\n", compParamType);
+
+          uint8_t compParamAccess = data[pos++];
+          Serial.printf("compParam access = %d\n", compParamAccess);
+        }
+      }
 
       Serial.printf("MODULE %d : %s\n", mod.id, mod.name.c_str());
-
       device.modules.push_back(mod);
     }
 

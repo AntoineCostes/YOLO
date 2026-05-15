@@ -18,10 +18,9 @@ class IYoloDeviceView
 public:
     virtual ~IYoloDeviceView() = default;
 
-    virtual const std::vector<IModule*>&  getModules() const = 0;
+    virtual const std::vector<IModule *> &getModules() const = 0;
 
     virtual std::string getDeviceName() const = 0;
-
 };
 
 class ServerCallbacks : public NimBLEServerCallbacks
@@ -79,6 +78,7 @@ private:
     Callback callback;
 };
 
+// For BLE discovery
 class QueryCallbacks : public NimBLECharacteristicCallbacks
 {
 public:
@@ -103,29 +103,29 @@ private:
         switch (opcode)
         {
         case GET_MODULE_LIST:
-            sendModuleList();
+            getDeviceMap();
             break;
+
         default:
             break;
         }
     }
 
-    void sendModuleList()
+    void getDeviceMap()
     {
-        Serial.println("sendModuleList");
-        const auto &modules = deviceView.getModules();
-        std::vector<uint8_t> buffer;
-        buffer.push_back(GET_MODULE_LIST);
-        buffer.push_back(modules.size());
-        for (auto m : modules)
-        {
-            buffer.push_back(m->getModuleID());
-            const char *name = m->getName();
-            uint8_t len = strlen(name);
-            buffer.push_back(len);
-            buffer.insert(buffer.end(), name, name + len);
-        }
-        responseChr->setValue(buffer.data(), buffer.size());
+        Serial.println("sendDeviceMap");
+        uint8_t buffer[1024];
+        PacketWriter w(buffer, sizeof(buffer));
+
+        w.u8((uint8_t)BLEOpcode::GET_MODULE_LIST);
+
+        const auto& modules = deviceView.getModules();
+        w.u8(modules.size());
+
+        for (auto* m : modules)
+            m->serializeMetadata(w);
+
+        responseChr->setValue(buffer, w.pos);
         responseChr->notify();
     }
 };

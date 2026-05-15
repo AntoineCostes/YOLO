@@ -1,6 +1,6 @@
 #include "BLEModule.h"
 
-BLEModule::BLEModule() : Module<Component>("ble"),
+BLEModule::BLEModule() : Module<MODULE_ID::BLE, Component>("ble"),
                          serverCbcks(nullptr), ctrlCbcks(),
                          hack_inc(0)
 
@@ -32,13 +32,12 @@ void BLEModule::setupServer(IYoloDeviceView &deviceView)
 
   NimBLEService *service = server->createService(YOLO_SERVICE_UUID);
 
+  // client will send queries to retrieve architecture
   queryChr = service->createCharacteristic(YOLO_QUERY_UUID, NIMBLE_PROPERTY::WRITE);
-
   responseChr = service->createCharacteristic(YOLO_RESPONSE_UUID, NIMBLE_PROPERTY::NOTIFY);
-  queryChr->setCallbacks( new QueryCallbacks(deviceView, responseChr));
-
+  queryChr->setCallbacks(new QueryCallbacks(deviceView, responseChr));
+  
   stateChr = service->createCharacteristic(YOLO_STATE_UUID, NIMBLE_PROPERTY::NOTIFY);
-
   controlChr = service->createCharacteristic(YOLO_CONTROL_UUID, NIMBLE_PROPERTY::WRITE_NR);
 
   ctrlCbcks.setCallback(
@@ -86,40 +85,5 @@ void BLEModule::refresh()
     // Serial.printf("Sending parameter size = %d\n", param->getSize());
     stateChr->notify();
     hack_inc = 0;
-  }
-}
-
-void BLEModule::handleQuery(uint8_t opcode, const uint8_t *data, size_t len)
-{
-  log("handleQuery");
-  Serial.println(opcode);
-  switch ((BLEOpcode)opcode)
-  {
-  case BLEOpcode::GET_MODULE_LIST:
-  {
-    std::vector<uint8_t> packet;
-    packet.push_back((uint8_t)BLEOpcode::GET_MODULE_LIST);
-    packet.push_back(2);
-
-    packet.push_back(0x01);
-    packet.push_back(3);
-    packet.push_back('b');
-    packet.push_back('l');
-    packet.push_back('e');
-
-    packet.push_back(0x02);
-    packet.push_back(4);
-    packet.push_back('w');
-    packet.push_back('i');
-    packet.push_back('f');
-    packet.push_back('i');
-
-    responseChr->setValue(packet.data(), packet.size());
-    responseChr->notify();
-
-    break;
-  }
-  default:
-    break;
   }
 }
