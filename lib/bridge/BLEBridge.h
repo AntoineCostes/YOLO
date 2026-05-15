@@ -1,17 +1,25 @@
 #pragma once
 #include <NimBLEDevice.h>
 
+
 #define YOLO_SERVICE_UUID "b91bb233-0000-4de7-97cb-ae80cc439000"
 #define YOLO_QUERY_UUID "b91bb233-0001-4de7-97cb-ae80cc439000"
 #define YOLO_RESPONSE_UUID "b91bb233-0002-4de7-97cb-ae80cc439000"
 #define YOLO_STATE_UUID "b91bb233-0003-4de7-97cb-ae80cc439000"
-#define YOLO_CONTROL_UUID        "b91bb233-0004-4de7-97cb-ae80cc439000"
+#define YOLO_CONTROL_UUID "b91bb233-0004-4de7-97cb-ae80cc439000"
 
-enum class ConnectionState : uint8_t {
-  DISCONNECTED,
-  CONNECTED,
-  DISCOVERING,
-  READY
+enum class DiscoveryStep : uint8_t {
+  Idle,
+  Connect,
+  Discover,
+  BindCharacteristics,
+  Subscribe,
+  RequestModules,
+  AwaitModules,
+  RequestComponents,
+  AwaitComponents,
+  Ready,
+  Error
 };
 
 enum class BLEOpcode : uint8_t {
@@ -27,7 +35,7 @@ enum class BLEOpcode : uint8_t {
 struct DeviceContext {
   NimBLEClient* bleClient = nullptr;
 
-  ConnectionState state = ConnectionState::DISCONNECTED;
+  DiscoveryStep step = DiscoveryStep::Idle;
 
   NimBLERemoteCharacteristic* queryChr = nullptr;
   NimBLERemoteCharacteristic* responseChr = nullptr;
@@ -35,14 +43,10 @@ struct DeviceContext {
 
   std::vector<RemoteModule> modules;
 
-  size_t discoveryIndex = 0;
-
-  bool discoveryDone = false;
-
   DeviceContext() {}
 
-  DeviceContext(NimBLEClient* client, ConnectionState s)
-    : bleClient(client), state(s) {}
+  DeviceContext(NimBLEClient* client)
+    : bleClient(client) {}
 };
 
 class BLEBridge;
@@ -67,7 +71,6 @@ private:
   BLEBridge* owner;
 };
 
-
 class BLEBridge {
 public:
   BLEBridge()
@@ -86,35 +89,71 @@ public:
   }
 
   void update() {
+    uint8_t opcode;
+    std::vector<NimBLERemoteService*> services;
+
     for (auto& device : devices) {
-      switch (device.state) {
-        case ConnectionState::DISCONNECTED:
-          break;
-
-        case ConnectionState::CONNECTED:
-          {
-            Serial.println("CONNECTED");
-
-            if (!device.bleClient->discoverAttributes()) {
-              Serial.println("ERROR discover attributes failed");
-              device.state = ConnectionState::DISCONNECTED;
-              break;
-            }
-
-            if (!setupDevice(device)) {
-              Serial.println("ERROR setupDevice failed");
-              device.state = ConnectionState::DISCONNECTED;
-              break;
-            }
-            startDiscovery(device);
-            device.state = ConnectionState::DISCOVERING;
+      switch (device.step) {
+        case DiscoveryStep::Discover:
+          if (!device.bleClient->discoverAttributes()) {
+            Serial.println("ERROR discover attributes failed");
+            device.step = DiscoveryStep::Error;
             break;
           }
 
-        case ConnectionState::DISCOVERING:
+          device.step = DiscoveryStep::BindCharacteristics;
           break;
 
-        case ConnectionState::READY:
+        case DiscoveryStep::BindCharacteristics:
+          services = device.bleClient->getServices(true);
+          for (auto svc : services) {
+            auto chars = svc->getCharacteristics(true);
+            for (auto ch : chars) {
+              auto uuid = ch->getUUID().toString();
+
+              if (uuid == YOLO_QUERY_UUID) device.queryChr = ch;
+              else if (uuid == YOLO_RESPONSE_UUID) device.responseChr = ch;
+              else if (uuid == YOLO_STATE_UUID) device.stateChr = ch;
+            }
+          }
+
+          if (!device.queryChr || !device.responseChr || !device.stateChr) {
+            Serial.println("ERROR Missing characteristics");
+            device.step = DiscoveryStep::Error;
+            break;
+          }
+
+          device.step = DiscoveryStep::Subscribe;
+          break;
+
+        case DiscoveryStep::Subscribe:
+          device.responseChr->subscribe(true, [this](NimBLERemoteCharacteristic* chr, uint8_t* data, size_t len, bool isNotify) {
+            onResponse(chr, data, len, isNotify);
+          });
+
+          device.stateChr->subscribe(true, [this](NimBLERemoteCharacteristic* chr, uint8_t* data, size_t len, bool isNotify) {
+            onState(chr, data, len, isNotify);
+          });
+
+          device.step = DiscoveryStep::RequestModules;
+          break;
+
+        case DiscoveryStep::RequestModules:
+          Serial.println("get modules");
+          opcode = (uint8_t)BLEOpcode::GET_MODULE_LIST;
+          device.queryChr->writeValue(&opcode, 1);
+
+          device.step = DiscoveryStep::AwaitModules;
+          break;
+
+        case DiscoveryStep::AwaitModules:
+          break;
+
+        case DiscoveryStep::RequestComponents:
+          opcode = (uint8_t)BLEOpcode::GET_COMPONENT_DESC;
+          device.queryChr->writeValue(&opcode, 1);
+
+          device.step = DiscoveryStep::AwaitComponents;
           break;
 
         default:
@@ -127,32 +166,51 @@ public:
     for (auto& device : devices)
       if (device.bleClient == client)
         return &device;
+
     return nullptr;
   }
 
   void onConnected(NimBLEClient* client) {
     auto device = findDevice(client);
     if (!device) return;
-    device->state = ConnectionState::CONNECTED;
+    device->step = DiscoveryStep::Discover;
   }
 
   void onDisconnected(NimBLEClient* client) {
     auto device = findDevice(client);
     if (!device) return;
-    device->state = ConnectionState::DISCONNECTED;
+    device->step = DiscoveryStep::Idle;
   }
 
   void onResponse(NimBLERemoteCharacteristic* chr, uint8_t* data, size_t len, bool isNotify) {
-    Serial.printf("on response");
+    Serial.println("on response");
     NimBLEClient* client = chr->getRemoteService()->getClient();
     auto device = findDevice(client);
-    if (!device) 
-    {
-      
-    Serial.printf("eRROR client not found");
+    if (!device) {
+      Serial.printf("eRROR client not found");
       return;
     }
-    parseResponse(*device, data, len);
+    
+    if (len == 0)
+      return;
+    uint8_t opcode = data[0];
+
+    switch ((BLEOpcode)opcode) {
+      case BLEOpcode::GET_MODULE_LIST:
+        {
+          parseModuleList(*device, data, len);
+          break;
+        }
+      case BLEOpcode::GET_COMPONENT_DESC:
+        {
+          Serial.println("got components");
+          break;
+        }
+
+
+      default:
+        break;
+    }
   }
 
   void onState(NimBLERemoteCharacteristic* chr, uint8_t* data, size_t len, bool isNotify) {
@@ -166,61 +224,10 @@ private:
   ClientCallbacks clientCallbacks;
   ScanCallbacks scanCallbacks;
 
-
-  bool setupDevice(DeviceContext& device) {
-    auto services = device.bleClient->getServices(true);
-
-    for (auto svc : services) {
-      auto chars = svc->getCharacteristics(true);
-      for (auto ch : chars) {
-        auto uuid = ch->getUUID().toString();
-
-        if (uuid == YOLO_QUERY_UUID) device.queryChr = ch;
-        else if (uuid == YOLO_RESPONSE_UUID) device.responseChr = ch;
-        else if (uuid == YOLO_STATE_UUID) device.stateChr = ch;
-      }
-    }
-
-    if (!device.queryChr || !device.responseChr || !device.stateChr) {
-      Serial.println("Missing characteristics");
-      return false;
-    }
-
-    device.responseChr->subscribe(true, [this](NimBLERemoteCharacteristic* chr, uint8_t* data, size_t len, bool isNotify) {
-      onResponse(chr, data, len, isNotify);
-    });
-
-    device.stateChr->subscribe(true, [this](NimBLERemoteCharacteristic* chr, uint8_t* data, size_t len, bool isNotify) {
-      onState(chr, data, len, isNotify);
-    });
-
-    return true;
-  }
-
   void startDiscovery(DeviceContext& device) {
     Serial.println("start discovery");
     uint8_t opcode = (uint8_t)BLEOpcode::GET_MODULE_LIST;
     device.queryChr->writeValue(&opcode, 1);
-  }
-
-
-  void parseResponse(DeviceContext& device, uint8_t* data, size_t len) {
-    if (len == 0)
-      return;
-
-      Serial.println("parse response");
-    uint8_t opcode = data[0];
-
-    switch ((BLEOpcode)opcode) {
-      case BLEOpcode::GET_MODULE_LIST:
-        {
-          parseModuleList(device, data, len);
-          break;
-        }
-
-      default:
-        break;
-    }
   }
 
   void parseModuleList(DeviceContext& device, uint8_t* data, size_t len) {
@@ -248,9 +255,7 @@ private:
       device.modules.push_back(mod);
     }
 
-    device.discoveryDone = true;
-
-    device.state = ConnectionState::READY;
+    device.step = DiscoveryStep::RequestComponents;
 
     Serial.println("DISCOVERY DONE");
   }
@@ -293,7 +298,7 @@ inline void ScanCallbacks::onResult(const NimBLEAdvertisedDevice* advertisedDevi
     Serial.println("Client creation failed");
     return;
   }
-  owner->devices.emplace_back(client, ConnectionState::DISCONNECTED);
+  owner->devices.emplace_back(client);
   client->setClientCallbacks(&owner->clientCallbacks, false);
 
   if (!client->connect(true, true, false)) {
