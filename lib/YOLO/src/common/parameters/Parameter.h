@@ -23,24 +23,37 @@ struct PacketWriter {
   uint8_t* buf;
   size_t pos = 0;
   size_t capacity;
+  bool ok = true;
 
   PacketWriter(uint8_t* b, size_t c)
     : buf(b), capacity(c) {}
 
-  void u8(uint8_t v) {
-    buf[pos++] = v;
+  void u8(uint8_t v)  {
+  if (!ok || pos + 1 > capacity) {
+    ok = false;
+    return;
   }
+  buf[pos++] = v;
+}
 
-  void bytes(const uint8_t* data, size_t len) {
-    memcpy(buf + pos, data, len);
-    pos += len;
+void bytes(const uint8_t* data, size_t len) {
+  if (!ok || pos + len > capacity) {
+    ok = false;
+    return;
   }
+  memcpy(buf + pos, data, len);
+  pos += len;
+}
 
   void str(const char* s) {
-    uint8_t len = strlen(s);
-    u8(len);
-    bytes((const uint8_t*)s, len);
+  uint8_t len = strlen(s);
+  if (!ok || pos + 1 + len > capacity) {
+    ok = false;
+    return;
   }
+  u8(len);
+  bytes((const uint8_t*)s, len);
+}
 
   size_t size() const { return pos; }
 };
@@ -77,7 +90,8 @@ public:
     }
     
     void serializeMetadata(PacketWriter& w) const {
-    w.str(name);
+    // w.str(name);
+    // w.str("helloworld123456789");
     w.u8((uint8_t)type);
     w.u8((uint8_t)access);
     }

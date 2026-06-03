@@ -234,12 +234,25 @@ private:
 
   void parseModuleList(DeviceContext& device, uint8_t* data, size_t len) {
     Serial.println("parse module list");
+    Serial.printf("len received = %d\n", len);
+
+    uint8_t receivedChecksum = data[len - 1];
+    size_t payloadLen = len - 1;
+    uint8_t computed = crc8(data, payloadLen);
+    if (computed != receivedChecksum) {
+      Serial.println("❌ PACKET CORRUPTED");
+      Serial.printf("CRC FAIL: got=%02X computed=%02X\n",
+              receivedChecksum,
+              computed);
+      return;
+    }
 
     size_t pos = 1;
     uint8_t moduleCount = data[pos++];
     Serial.printf("MODULE COUNT = %d\n", moduleCount);
 
     for (int i = 0; i < moduleCount; i++) {
+      Serial.println("");
       Serial.printf("module #%d\n", i);
       RemoteModule mod;
 
@@ -255,19 +268,19 @@ private:
 
         Serial.printf("param #%d\n", paramIndex);
 
-        uint8_t nameLen = data[pos++];
-        Serial.printf("param nameLen = %d\n", nameLen);
+        // uint8_t nameLen = data[pos++];
+        // Serial.printf("param nameLen = %d\n", nameLen);
 
-        Serial.printf("RAW NAME BYTES: ");
-        for (int i = 0; i < nameLen; i++)
-        {
-            Serial.printf("%02X ", data[pos + i]);
-        }
-        Serial.println();
-        std::string paramName((char*)&data[pos], nameLen);
-        Serial.println(paramName.c_str());
-        Serial.printf("param name = %s\n", paramName.c_str());
-        pos += nameLen;
+        // Serial.printf("RAW NAME BYTES: ");
+        // for (int i = 0; i < nameLen; i++)
+        // {
+        //     Serial.printf("%02X ", data[pos + i]);
+        // }
+        // Serial.println();
+        // std::string paramName((char*)&data[pos], nameLen);
+        // Serial.println(paramName.c_str());
+        // Serial.printf("param name = %s\n", paramName.c_str());
+        // pos += nameLen;
 
         uint8_t paramType = data[pos++];
         Serial.printf("param type = %d\n", paramType);
@@ -283,11 +296,11 @@ private:
       Serial.println("list components");
       for (int compIndex = 0; compIndex < compCount; compIndex++) {
 
-      Serial.printf("comp #%d\n", compIndex);
-        uint8_t nameLen = data[pos++];
-        std::string name((char*)&data[pos], nameLen);
-        Serial.printf("comp name = %s\n", name.c_str());
-        pos += nameLen;
+        Serial.printf("comp #%d\n", compIndex);
+        // uint8_t nameLen = data[pos++];
+        // std::string name((char*)&data[pos], nameLen);
+        // Serial.printf("comp name = %s\n", name.c_str());
+        // pos += nameLen;
 
         uint8_t compParamCount = data[pos++];
         Serial.printf("compParam count = %d\n", compParamCount);
